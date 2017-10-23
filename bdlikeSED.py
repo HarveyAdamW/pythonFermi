@@ -3,13 +3,13 @@
 #this class takes the very basic inputs and gathers the necessary information that one isn't likley to change
 #also define class functions to easily access the other info gathering functions
 class bdlikeInput:
-	#the arguments are: 
+	#the arguments are:
 	#LIKE (an BinnedAnalysis object),
 	#model (xml model for fitting the energy bands), and
 	#SrcName (name of your source of interest)
 	#nbins (integer number of bins)
 	#model and SrcNames are assumed to be strings
-	
+
 	def __init__(self,LIKE,ft1,cc,ft2,SrcName,model='',nbins=20,phCorr=1.0):
 		if(not fileCheck(ft1)):
 			return
@@ -36,7 +36,7 @@ class bdlikeInput:
 		self.obsROI=self.bdAn.binnedData.observation.roiCuts().roiCone()
 		self.obsEBounds=self.bdAn.binnedData.observation.roiCuts().getEnergyCuts()
 		self.phCorr=phCorr
-	
+
 	#print out the parameters
 	def Print(self):
 		print self.bdAn
@@ -44,14 +44,14 @@ class bdlikeInput:
 		print 'Event file:',self.ft1
 		print 'Model for energy bands:', self.bandModel
 		print 'Source of Interest:', self.source
-	
+
 	#direct acces to maxEnergy function
 	def srcMaxE(self):
 		file=pyfits.open(self.ft1)
 		MAX=maxEnergy(self,file)
 		file.close()
 		return MAX
-	
+
 	#makes bins for plotting taking max energy into account, makes NBins bands for full rnge and then accesses plotEbounds function
 	def plotBins(self,MaxE=0):
 		if(MaxE==0):
@@ -61,21 +61,21 @@ class bdlikeInput:
 		self.nbins=len(self.bins[0])
 		self.makeFiles()
 		self.custBins=0
-		
+
 	#function for those who want to define their own plot bins in a manner different from the plotBins function
 	def customBins(self,MIN,MAX):#here MIN and MAX are the bin low and high edges (respectively) as you've defined them
 		self.bins=[MIN,MAX]
 		self.nbins=len(MIN)
 		self.makeFiles()
 		self.custBins=1
-	
+
 	#runs both makeFT1Bands and makeExpMaps
 	def makeFiles(self):
 		#makeFT1Bands(self,evclsmin,evclsmax)
 		makeEFile(self)
 		makeCCube(self)
 		makeSMap(self)
-	
+
 	#allows one to access the full energy range without redoing the fit if it has already been done
 	def getfullFit(self,Emin=0,Emax=0,expCorrect=False,writeXML=False):
 		if(Emin==0):
@@ -92,7 +92,7 @@ class bdlikeInput:
 				Emax=self.bins[1][-1]
 		self.FitBounds=[Emin,Emax]
 		self.Fit=getFit(self,Emin,Emax,51,1,expCorrect=expCorrect,wx=writeXML)
-	
+
 	#run the full fit on LIKE, objective to get model and bowtie plot info
 	def fullFit(self,ftol=1e-3,CoVar=False,toltype='ABS',Emin=0,Emax=0,writeXML=False): #must say CoVar=True if one wants bowtie info
 		if(toltype!='ABS' and toltype!='REL'):
@@ -116,7 +116,7 @@ class bdlikeInput:
 				Emax=self.bins[1][-1]
 		self.FitBounds=[Emin,Emax]
 		self.Fit=fullLike(self,CoVar,ftol,Emin,Emax,wx=writeXML) #returns bowtie info and best fit model (in that order)
-	
+
 class bdlikeSED:
 	def __init__(self,Input):
 		#the arguements are:
@@ -131,15 +131,15 @@ class bdlikeSED:
 			self.Fit=Input.Fit[1]
 			self.BT=Input.Fit[0]
 			self.FitBounds=Input.FitBounds
-	
+
 	#get center energies based on best fit model, basically just gives access to specWeightedCenters function.
 	def getECent(self):
 		self.centers=specWeightedCenters(self.likeIn)
-	
+
 	#define custom center energies (i.e. if you want different or no weighting)
 	def customECent(self,Cent):
 		self.centers=Cent
-	
+
 	#do likelihood fits in each band
 	def fitBands(self,ftol=1e-3,tslim=25,toltype='ABS',opt='NewMinuit',rescaleAll=False,lastbinUL=False,writeXML=False):
 		if(toltype!='ABS' and toltype!='REL'):
@@ -150,10 +150,10 @@ class bdlikeSED:
 		else:
 			ttype=0
 		self.data=runLike(self.likeIn,self.centers,ftol,tslim,ttype,opt,rescaleAll,lastbinUL,writeXML)
-	
+
 	#for the next two functions, leave ecent as an optional input in the event that the centers are determined via a different method than
 	#in the getECent function
-	
+
 	#plot the results and create and save the histograms, .eps, and fits results files.
 	def Plot(self,plot=True):
 		try:
@@ -161,7 +161,7 @@ class bdlikeSED:
 		except:
 			self.fitBands
 		plotSED(self,plot)
-	
+
 	#make a residuals plot
 	def residuals(self,plot=True):
 		try:
@@ -195,7 +195,7 @@ def log_array(npts, xmin, xmax):
 
 #this function creates the different energy band ft1 files from the original ft1, no longer needed
 #def makeFT1Bands(likeIn,evmin,evmax):
-	#gtselect=GtApp('gtselect') #note, checks for existence of ft1 bands, if found won't remake 
+	#gtselect=GtApp('gtselect') #note, checks for existence of ft1 bands, if found won't remake
 	#Src=likeIn.source
 	#NBins=likeIn.NBins
 	#ft1=likeIn.ft1
@@ -298,7 +298,7 @@ def maxEnergy(likeIn,file):
 	RA=data.field('RA')
 	DEC=data.field('DEC')
 	CNVTYPE=data.field('CONVERSION_TYPE')
-	
+
 	pyIrfLoader.Loader_go() #get available IRFs
 	irfs={} #make front and back instances
 	irfs[0]=pyIrfLoader.IrfsFactory.instance().create(likeIn.IRFs+'::FRONT')
@@ -357,7 +357,7 @@ def centEnergy(MIN,MAX):
 	GeVcent=[]
 	for x in cent:
 		GeVcent+=[float(x/1000.)]
-	
+
 	return GeVcent
 
 #runs likelihood for each band and records prefactors, values, and TS values for each, computes upperlimits if necessary
@@ -438,7 +438,7 @@ def runLike(likeIn,ecent,ftol,tslim,ttype,opt,rescaleAll,lastbinUL,wx):
 					par.setScale(10**newScale)
 			try:
 				band_like.fit(tol=1,verbosity=0,optimizer=opt)
-				fail=0			
+				fail=0
 			except:
 				try:
 					band_like.fit(tol=1*10,verbosity=0,optimizer=opt)
@@ -457,7 +457,7 @@ def runLike(likeIn,ecent,ftol,tslim,ttype,opt,rescaleAll,lastbinUL,wx):
 						if band_like[src].type=='PointSource' and band_like.Ts(src)<=0 and par.isFree()==True:
 							band_like.deleteSource(src)
 							print "   -Removing %s from the model" %src
-			scale=getParamIndx(band_like,Src,'Scale') 
+			scale=getParamIndx(band_like,Src,'Scale')
 			pref=getParamIndx(band_like,Src,'Prefactor')
 			#do the actual fit
 			try:
@@ -578,10 +578,10 @@ def runLike(likeIn,ecent,ftol,tslim,ttype,opt,rescaleAll,lastbinUL,wx):
 							logFlux=-14
 						newScale=max(int(floor(logFlux)),-14)
 						par.setScale(10**newScale)
-						
+
 			try:
 				band_like.fit(tol=1,verbosity=0,optimizer=opt)
-				fail=0			
+				fail=0
 			except:
 				try:
 					band_like.fit(tol=1*10,verbosity=0,optimizer=opt)
@@ -658,7 +658,7 @@ def runLike(likeIn,ecent,ftol,tslim,ttype,opt,rescaleAll,lastbinUL,wx):
 						else:
 							val=band_like[Integral].value()
 							err=band_like[Integral].error()
-							gam=band_like[Index].value()*indxMult*-1.					
+							gam=band_like[Index].value()*indxMult*-1.
 					except:
 						try:
 							print '   Tyring lower tolerance of %s for band %i to get good starting point for upper limit calculations.' %(ftol/10,i)
@@ -688,6 +688,156 @@ def runLike(likeIn,ecent,ftol,tslim,ttype,opt,rescaleAll,lastbinUL,wx):
 			pts+=[val*multiplier/phCorr]
 			errs+=[err*multiplier/phCorr]
 			gamma+=[gam]
+		elif stype=='LogParabola':
+			norm  = getParamIndx(band_like,Src,'norm')
+			alpha = getParamIndx(band_like,Src,'alpha')
+			Eb    = getParamIndx(band_like,Src,'Eb')
+			beta  = getParamIndx(band_like,Src,'beta')
+
+			freeze(norm)
+			freeze(alpha)
+			freeze(Eb)
+			freeze(beta)
+			band_like[norm].setBounds(1e-15,1e3)
+			band_like[alpha].setBounds(-5,5)
+			band_like[Eb].setBounds(1,10000)
+			band_like[beta].setBounds(1e-5,10)
+
+			band_like[norm].setScale(1)
+			band_like[alpha].setScale(1)
+			band_like[Eb].setScale(1)
+			band_like[beta].setScale(1)
+
+			band_like[Eb]=1000.*ecent[i]
+
+			try:
+				logFlux=log10(flux(Src,emin=emin,emax=emax)/(emax-emin))
+			except:
+				logFlux=-14
+			newScale=max(int(floor(logFlux)),-14)
+			print newScale
+			band_like[norm].setScale(10.**newScale)
+			multiplier=10.**newScale
+			#cycle through the other point sources and adjust parameters of free point sources with PowerLaw2 models
+			for src in band_like.sourceNames():
+				spec=band_like[src].funcs['Spectrum']
+				par=spec.normPar()
+				if par.isFree()==True and band_like.model.srcs[src].spectrum().genericName()=='PowerLaw2':
+					HIGH=getParamIndx(band_like,src,'UpperLimit')
+					LOW=getParamIndx(band_like,src,'LowerLimit')
+					band_like[HIGH].setBounds(20,5e5) #just in case, make sure no out of range error gets thrown
+					band_like[LOW].setBounds(20,5e5)
+					band_like[HIGH].setScale(1.) #just in case, make sure scale is MeV
+					band_like[LOW].setScale(1.)
+					band_like[HIGH]=emax
+					band_like[LOW]=emin
+					freeze(HIGH) #just in case, make sure these aren't fit values
+					freeze(LOW)
+					if rescaleAll==True:
+						try:
+							logFlux=log10(flux(src,emin=emin,emax=emax))
+						except:
+							logFlux=-14
+						newScale=max(int(floor(logFlux)),-14)
+						par.setScale(10**newScale)
+				if rescaleAll==True and src!=Src and par.isFree()==True and band_like.model.srcs[src].spectrum().genericName()=='PowerLaw':
+					try:
+						logFlux=log10(flux(src,emin=emin,emax=emax)/(emax-emin))
+					except:
+						logFlux=-14
+					newScale=max(int(floor(logFlux)),-14)
+					par.setScale(10**newScale)
+			try:
+				fit(tol=1,verbosity=0,optimizer=opt)
+				fail=0
+			except:
+				try:
+					fit(tol=1*10,verbosity=0,optimizer=opt)
+					fail=0
+				except:
+					try:
+						fit(tol=1./10,verbosity=0,optimizer=opt)
+						fail=0
+					except:
+						print "Fit with optimizer %s with tolerances ~1 to look for negative or zero TS sources failed, if error bars are unrealistically small you may need to redo the fit for energy band %i manually" %(opt,i)
+						fail=1
+			if fail==0:
+				for src in band_like.sourceNames():
+					if src!=Src:
+						par=band_like.normPar(src)
+						if band_like[src].type=='PointSource' and Ts(src)<=0 and par.isFree()==True:
+							band_like.deleteSource(src)
+							print "   -Removing %s from the model" %src
+			Eb=getParamIndx(band_like,Src,'Eb')
+			norm=getParamIndx(band_like,Src,'norm')
+			#do the actual fit
+			try:
+				fit(tol=ftol,verbosity=0)
+			except:
+				try:
+					print 'Trying lower tolerance of %s for band%i.' %(ftol/10,i)
+					fit(tol=ftol/10,verbosity=0)
+				except:
+					try:
+						print 'Trying higher tolerance of %s for band%i.' %(ftol*10,i)
+						fit(tol=ftol*10,verbosity=0)
+					except:
+						print 'No convergence for band%i, skipping.' %i
+						pts+=[0]
+						errs+=[0]
+						tsPts+=[0]
+						pass
+			#get the prefactor, error, and ts values
+			val=band_like[norm].value()
+			err=band_like[norm].error()
+			TS=Ts(Src)
+			if(TS<tslim or (i==(nbins-1) and lastbinUL==True)): #calculate 95% upperlimit if source TS<tslim, 25 by default (corresponds to ~5sigma)
+				try:
+					freeze(norm)
+					ul=UpperLimits(band_like)
+					UL=ul[Src].compute(emin=emin,emax=emax)
+					val=UL[1]
+					err=0
+					print '    NOTE: Band%i,' %i,'with center energy',ecent[i],'GeV, quoting 95% upper limit on flux.'
+				except:
+					try:
+						print '   Tyring higher tolerance of %s for band %i to get good starting point for upper limit calculations.' %(ftol*10,i)
+						band_like[norm].setFree(1)
+						fit(tol=ftol*10,verbosity=0)
+						TS=Ts(Src)
+						if(TS<tslim or (i==(nbins-1) and lastbinUL==True)):
+							freeze(pref)
+							ul=UpperLimits(band_like)
+							UL=ul[Src].compute(emin=emin,emax=emax)
+							val=UL[1]
+							err=0
+							print '    NOTE: Band%i,' %i,'with center energy',ecent[i],'GeV, quoting 95% upper limit on flux.'
+						else:
+							val=band_like[norm].value()
+							err=band_like[norm].error()
+					except:
+						try:
+							print '   Tyring lower tolerance of %s for band %i to get good starting point for upper limit calculations.' %(ftol/10,i)
+							band_like[norm].setFree(1)
+							fit(tol=ftol/10,verbosity=0)
+							TS=Ts(Src)
+							if(TS<tslim or (i==(nbins-1) and lastbinUL==True)):
+								freeze(norm)
+								ul=UpperLimits(band_like)
+								UL=ul[Src].compute(emin=emin,emax=emax)
+								val=UL[1]
+								err=0
+								print '    NOTE: Band%i,' %i,'with center energy',ecent[i],'GeV, quoting 95% upper limit on flux.'
+							else:
+								val=band_like[norm].value()
+								err=band_like[norm].error()
+						except:
+							err=0
+							print '    NOTE: Band%i,' %i,'with center energy',ecent[i],'GeV, TS<%s' %tslim,'but UpperLimits computation failed.'
+							print '          Quoting best fit value with zero error.'
+			tsPts+=[TS]
+			pts+=[val*multiplier/phCorr]
+			errs+=[err*multiplier/phCorr]
 		else:
 			print '%s needs to have PowerLaw or PowerLaw2 spectral model, not %s' %(Src,stype)
 			print 'exiting without running likelihood in the energy bands'
@@ -725,7 +875,7 @@ def plotSED(sed,plot):
 	gStyle.SetOptTitle(0)
 	gStyle.SetPaperSize(14,10)
 	XTitle='Energy (GeV)'
-	YTitle=['dN/dE (cm^{-2} s^{-1} GeV^{-1} )','E^{2}dN/dE (erg cm^{-2} s^{-1} )','#nuF_{#nu} (erg cm^{-2} s^{-1} )']	
+	YTitle=['dN/dE (cm^{-2} s^{-1} GeV^{-1} )','E^{2}dN/dE (erg cm^{-2} s^{-1} )','#nuF_{#nu} (erg cm^{-2} s^{-1} )']
 	#let's make the graphs for the model, both the counts spectrum and the E^2dN/dE spectrum
 	modBins=log_array(51,sed.FitBounds[0]/1000.,sed.FitBounds[1]/1000.)
 	modelEcent=[0.5*(e1+e2) for e1,e2 in zip(modBins[0:-1],modBins[1:])]
@@ -795,7 +945,7 @@ def plotSED(sed,plot):
 	dataHigh=max(GeVfluxPts)
 	cntdummy.GetYaxis().SetRangeUser(min(dataLow,modLow)*0.25,max(dataHigh,modHigh)*5)
 	#now, lets make the data graphs
-	cntArrows=[] #create lists to be filled with TArrows for upper limits points for dN/dE spectrum, TArrows not saved, only used if plot==True 
+	cntArrows=[] #create lists to be filled with TArrows for upper limits points for dN/dE spectrum, TArrows not saved, only used if plot==True
 	flxArrows=[] #same as above but for E^2dN/dE spectrum
 	newecent=[]
 	for e,f in zip(ecent,fluxPts):
@@ -840,8 +990,8 @@ def plotSED(sed,plot):
 			cntArrows+=[TArrow(z,x,z,x*0.50,0.025,'|->')]
 	for x,y,z in zip(esqf,esqfErr,ecent):
 		if x>0 and y==0:
-			flxArrows+=[TArrow(z,x,z,x*0.50,0.025,'|->')]	
-	
+			flxArrows+=[TArrow(z,x,z,x*0.50,0.025,'|->')]
+
 	cnt.GetXaxis().SetTitle(XTitle)
 	flx.GetXaxis().SetTitle(XTitle)
 	cnt.GetYaxis().SetTitle(YTitle[0])
@@ -982,7 +1132,7 @@ def plotSED(sed,plot):
 	flxCanvas.Write()
 	tsCanvas.Write()
 	writeSpecFits(sed,modBins,modelEcent,[x/1000. for x in newminEs],[x/1000. for x in newmaxEs],GeVfluxPts,GeVfluxErrs,ecent,EsqFluxes,EsqFErrors) #write the output to a sed.Fits file
-	return 
+	return
 
 #create fits file with spectral output
 def writeSpecFits(sed,modelEbins,modelEcent,minEs,maxEs,GeVfluxPts,GeVfluxErrs,ecent,esqf,esqferr):
@@ -1060,7 +1210,7 @@ def residualsPlot(sed,plot):
 		MeV=x*1000. #ecent is in GeV, but mysrc.spectrum assumes MeV
 		arg=pyLike.dArg(MeV)
 		val=mysrc.spectrum()(arg)
-		modelPts+=[float(val)] 
+		modelPts+=[float(val)]
 	#allow for the possibility of the model points have errors too
 	if(sed.likeIn.bdAn.covariance is None):
 		modelErrs=[0]*len(modelPts)
@@ -1170,21 +1320,21 @@ def fullLike(likeIn,CoVar,FTol,minE,maxE,wx=False):
 			except:
 				print 'Error, no convergence.'
 				return
-			
+
 	for src in bdAn.sourceNames():
 		par=bdAn.normPar(src)
 		par.setValue(par.getValue()/phCorr)
 		par.setError(par.error()/phCorr)
-	
+
 	#most of the following (getting model and bowtie) is taken directly from David Sanchez's pyUnfoldPlot with some minor stylistic changes
-	
+
 	#get the model
 	mysrc=pyLike.PointSource_cast(bdAn[likeIn.source].src)
 	spec=[float(1000.*mysrc.spectrum()(pyLike.dArg(x))) for x in centEs]
-	
+
 	if(likeIn.bdAn.covariance is None):
 		bt=[0]
-	
+
 	else:
 		bt=[]
 		covArray=num.array(bdAn.covariance)
@@ -1249,10 +1399,10 @@ def getFit(likeIn,minE,maxE,numBins,prtMod,ENERGIES=[],expCorrect=False,wx=False
 	#get the model
 	mysrc=pyLike.PointSource_cast(bdAn[likeIn.source].src)
 	spec=[float(1000.*mysrc.spectrum()(pyLike.dArg(x))) for x in centEs]
-	
+
 	if(bdAn.covariance is None):
 		bt=[0]
-	
+
 	else:
 		bt=[]
 		covArray=num.array(bdAn.covariance)
